@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback, memo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-/* ----------------------------- MAIN PAGE ----------------------------- */
+/* ----------------------------- LOGIC COMPONENT ----------------------------- */
 
-export default function MeetingPage() {
+function MeetingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -15,7 +15,7 @@ export default function MeetingPage() {
   const [userName, setUserName] = useState<string>("Guest");
   const [isNameSet, setIsNameSet] = useState<boolean>(false);
 
-  // Set display name once on mount (with localStorage persistence and prompt fallback)
+  // Set display name once on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedName = localStorage.getItem("displayName");
@@ -51,7 +51,7 @@ export default function MeetingPage() {
         .then((res) => res.json())
         .then((data) => {
           setMeetingId(data.roomId);
-          router.replace(`?roomId=${data.roomId}`); // Use replace to avoid history stack issues
+          router.replace(`?roomId=${data.roomId}`);
         })
         .catch(() => alert("Failed to create meeting"));
     }
@@ -66,6 +66,8 @@ export default function MeetingPage() {
   }
 
   const { MeetingProvider, useMeeting, useParticipant, usePubSub } = sdk;
+
+  // ---------------- INNER COMPONENTS ---------------- //
 
   const MemoParticipantView = memo(({ participantId }: { participantId: string }) => {
     const { webcamStream, micStream, webcamOn, micOn, displayName, isLocal } =
@@ -108,6 +110,8 @@ export default function MeetingPage() {
       </div>
     );
   });
+
+  MemoParticipantView.displayName = "MemoParticipantView";
 
   function InnerControls({
     toggleMic,
@@ -197,7 +201,9 @@ export default function MeetingPage() {
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex ${msg.senderId === localParticipant?.id ? "justify-end" : "justify-start"}`}
+              className={`flex ${
+                msg.senderId === localParticipant?.id ? "justify-end" : "justify-start"
+              }`}
             >
               <div
                 className={`max-w-[75%] p-3 rounded-2xl ${
@@ -209,7 +215,10 @@ export default function MeetingPage() {
                 <p className="font-semibold text-sm opacity-90">{msg.senderName}</p>
                 <p className="mt-1">{msg.message}</p>
                 <p className="text-xs opacity-75 mt-1">
-                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {new Date(msg.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </p>
               </div>
             </div>
@@ -235,13 +244,18 @@ export default function MeetingPage() {
       </div>
     );
   });
+  
+  MemoChatView.displayName = "MemoChatView";
 
   function MeetingView() {
-    const { participants, localParticipant } = useMeeting({
+    const { participants } = useMeeting({
       onMeetingLeft: () => router.push("/"),
     });
 
-    const participantIds = useMemo(() => Array.from(participants.keys()), [participants]);
+    const participantIds = useMemo(
+      () => Array.from(participants.keys()),
+      [participants]
+    );
 
     return (
       <div className="flex flex-col lg:flex-row gap-6 h-full">
@@ -256,7 +270,9 @@ export default function MeetingPage() {
             <button
               onClick={() => {
                 const link = `${window.location.origin}/call?roomId=${meetingId}`;
-                navigator.clipboard.writeText(link).then(() => alert("Invite link copied!"));
+                navigator.clipboard
+                  .writeText(link)
+                  .then(() => alert("Invite link copied!"));
               }}
               className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-full text-sm hover:bg-gray-300"
             >
@@ -301,5 +317,21 @@ export default function MeetingPage() {
         <MeetingView />
       </div>
     </MeetingProvider>
+  );
+}
+
+/* ----------------------------- MAIN EXPORT ----------------------------- */
+
+export default function MeetingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-10 text-center">
+          ⏳ Loading meeting environment...
+        </div>
+      }
+    >
+      <MeetingContent />
+    </Suspense>
   );
 }
