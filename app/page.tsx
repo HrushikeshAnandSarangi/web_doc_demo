@@ -1,65 +1,153 @@
-import Image from "next/image";
+"use client"; // Required for Framer Motion and Hooks in App Router
 
-export default function Home() {
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Stethoscope, User, Lock, Mail, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation'; // Correct import for App Router
+
+const LoginPage = () => {
+  const [role, setRole] = useState<'doctor' | 'patient'>('patient');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter(); // Initialize Next.js router
+
+  // Theme configuration
+  const theme = {
+    doctor: {
+      primary: 'bg-blue-600 hover:bg-blue-700',
+      text: 'text-blue-600',
+      border: 'focus:ring-blue-500',
+      gradient: 'from-blue-600 to-blue-800',
+      icon: <Stethoscope className="w-6 h-6" />,
+    },
+    patient: {
+      primary: 'bg-emerald-600 hover:bg-emerald-700',
+      text: 'text-emerald-600',
+      border: 'focus:ring-emerald-500',
+      gradient: 'from-emerald-500 to-teal-700',
+      icon: <User className="w-6 h-6" />,
+    }
+  };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      setLoading(false);
+      
+      // NEXT.JS REDIRECTION LOGIC
+      if (role === 'doctor') {
+        router.push('/doctor_portal');
+      } else {
+        router.push('/patient_portal');
+      }
+    }, 1500);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4 relative overflow-hidden">
+      
+      {/* Background Blobs */}
+      <div className={`absolute top-[-10%] right-[-5%] w-96 h-96 rounded-full opacity-20 blur-3xl transition-colors duration-700 ${role === 'doctor' ? 'bg-blue-400' : 'bg-emerald-400'}`} />
+      <div className={`absolute bottom-[-10%] left-[-5%] w-96 h-96 rounded-full opacity-20 blur-3xl transition-colors duration-700 ${role === 'doctor' ? 'bg-indigo-400' : 'bg-teal-400'}`} />
+
+      <motion.div 
+        layout
+        className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden relative z-10"
+      >
+        {/* Header */}
+        <div className={`p-8 pb-6 text-center transition-colors duration-500 bg-gradient-to-r ${theme[role].gradient}`}>
+          <motion.div 
+            key={role}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm text-white"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {theme[role].icon}
+          </motion.div>
+          <h2 className="text-3xl font-bold text-white mb-1">Welcome Back</h2>
+          <p className="text-white/80 text-sm">Sign in to access your dashboard</p>
         </div>
-      </main>
+
+        {/* Role Toggles */}
+        <div className="flex p-2 bg-gray-100 mx-6 -mt-6 rounded-xl relative shadow-sm">
+          {['patient', 'doctor'].map((r) => (
+            <button
+              key={r}
+              onClick={() => setRole(r as 'doctor' | 'patient')}
+              type="button"
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-semibold rounded-lg z-10 transition-colors duration-200 ${
+                role === r ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {r === 'doctor' ? 'Doctor' : 'Patient'}
+            </button>
+          ))}
+          <motion.div
+            className="absolute top-2 bottom-2 bg-white rounded-lg shadow-sm"
+            layoutId="toggle-bg"
+            initial={false}
+            animate={{
+              left: role === 'patient' ? '0.5rem' : '50%',
+              width: 'calc(50% - 0.75rem)',
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          />
+        </div>
+
+        {/* Form */}
+        <div className="p-8 pt-6">
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {role === 'doctor' ? 'Medical ID / Email' : 'Patient Email'}
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input 
+                    type="email" 
+                    required
+                    className={`w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 outline-none focus:ring-2 transition-all duration-200 ${theme[role].border}`}
+                    placeholder={role === 'doctor' ? 'dr.smith@hospital.com' : 'name@example.com'}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input 
+                    type="password" 
+                    required
+                    className={`w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 outline-none focus:ring-2 transition-all duration-200 ${theme[role].border}`}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-3 px-4 text-white rounded-lg font-medium shadow-lg transition-all duration-200 flex items-center justify-center gap-2 transform active:scale-[0.98] ${theme[role].primary} ${loading ? 'opacity-80 cursor-wait' : ''}`}
+            >
+              {loading ? (
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  Sign In
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      </motion.div>
     </div>
   );
-}
+};
+
+export default LoginPage;
