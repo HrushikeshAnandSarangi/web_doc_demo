@@ -114,7 +114,7 @@ export default function PatientPortal() {
   };
 
   const handleCall = () => {
-    router.push('/call');
+    router.push('/select-role');
   };
 
   return (

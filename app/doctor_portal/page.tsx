@@ -36,7 +36,7 @@ export default function DoctorPortal() {
 
   const handleCallPatient = (patientId: number) => {
     // In a real app, you might pass the ID as a query param: /call?patientId=...
-    router.push('/call'); 
+    router.push('/select-role'); 
   };
 
   const handleLogout = () => {
